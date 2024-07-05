@@ -51,18 +51,18 @@ Fuzzy *fuzzy = new Fuzzy();
 
 // Input membership function untuk error
 
-FuzzySet *Kiri_Tajam = new FuzzySet(-70, -70, -50, -30);
+FuzzySet *Kiri_Tajam = new FuzzySet(-60, -50, -40, -30);
 FuzzySet *Kiri = new FuzzySet(-40, -30, -20, -10);
 FuzzySet *Lurus = new FuzzySet(-10, -5, 5, 10);
-FuzzySet *Kanan = new FuzzySet(10, 20 , 30, 40);
-FuzzySet *Kanan_Tajam = new FuzzySet(30, 50, 70, 70);
+FuzzySet *Kanan = new FuzzySet(10, 20, 30, 40);
+FuzzySet *Kanan_Tajam = new FuzzySet(30, 40, 50, 60);
 
 // Input membership function untuk delta_error
-FuzzySet *Delta_Kiri_Tajam = new FuzzySet(-70, -50, -30, -30);
+FuzzySet *Delta_Kiri_Tajam = new FuzzySet(-60, -50, -40, -30);
 FuzzySet *Delta_Kiri = new FuzzySet(-40, -30, -20, -10);
 FuzzySet *Delta_Lurus = new FuzzySet(-10, -5, 5, 10);
 FuzzySet *Delta_Kanan = new FuzzySet(10, 20, 30, 40);
-FuzzySet *Delta_Kanan_Tajam = new FuzzySet(30, 50, 70, 70);
+FuzzySet *Delta_Kanan_Tajam = new FuzzySet(30, 40, 50, 60);
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //// Output membership function (kecepatan motor kanan)
@@ -81,22 +81,33 @@ FuzzySet *Delta_Kanan_Tajam = new FuzzySet(30, 50, 70, 70);
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //// Output membership function (kecepatan motor kanan)
 //FuzzySet *RightStop = new FuzzySet(0, 0, 5, 10);
-FuzzySet *RightPelan = new FuzzySet(50, 50, 75, 100);
-FuzzySet *RightSedang = new FuzzySet(90, 115, 140, 165);
-FuzzySet *RightCepat = new FuzzySet(155, 180, 205, 205);
-
+FuzzySet *RightPelan = new FuzzySet(0, 0, 20, 40);
+FuzzySet *RightSedang = new FuzzySet(20, 40, 60, 80);
+FuzzySet *RightCepat = new FuzzySet(60, 80, 100, 120);
 
 //// Output membership function (kecepatan motor kiri)
 //FuzzySet *LeftStop = new FuzzySet(0, 0, 0.5, 1);
-FuzzySet *LeftPelan = new FuzzySet(50, 50, 75, 100);
-FuzzySet *LeftSedang = new FuzzySet(90, 115, 140, 165);
-FuzzySet *LeftCepat = new FuzzySet(155, 180, 205, 205);
+FuzzySet *LeftPelan = new FuzzySet(0, 0, 20, 40);
+FuzzySet *LeftSedang = new FuzzySet(20, 40, 60, 80);
+FuzzySet *LeftCepat = new FuzzySet(60, 80, 100, 120);
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 float previousError = 0; // Menyimpan nilai error sebelumnya
 
 // Channel FS
 int ch_3, ch_1, ch_5, ch_6, ch_7, ch_8;
+
+void addFuzzyRule(int ruleNumber, FuzzySet* input1, FuzzySet* input2, FuzzySet* output1, FuzzySet* output2) {
+    FuzzyRuleAntecedent *antecedent = new FuzzyRuleAntecedent();
+    antecedent->joinWithAND(input1, input2);
+    
+    FuzzyRuleConsequent *consequent = new FuzzyRuleConsequent();
+    consequent->addOutput(output1);
+    consequent->addOutput(output2);
+    
+    FuzzyRule *fuzzyRule = new FuzzyRule(ruleNumber, antecedent, consequent);
+    fuzzy->addFuzzyRule(fuzzyRule);
 
 void setup() {
   Serial.begin(115200);
@@ -152,212 +163,35 @@ void setup() {
   MotorKiri->addFuzzySet(LeftCepat);
   fuzzy->addFuzzyOutput(MotorKiri);
 
-
-  //  // Definisi FuzzyRuleAntecedent dan FuzzyRuleConsequent berdasarkan tabel // Belok kiri tajam
-    FuzzyRuleAntecedent *ifKiri_TajamAndDelta_Kiri_Tajam = new FuzzyRuleAntecedent();
-    ifKiri_TajamAndDelta_Kiri_Tajam->joinWithAND(Kiri_Tajam, Delta_Kiri_Tajam);
-    FuzzyRuleConsequent *thenRightCepatAndLeftPelan1 = new FuzzyRuleConsequent();
-    thenRightCepatAndLeftPelan1->addOutput(RightCepat);
-    thenRightCepatAndLeftPelan1->addOutput(LeftPelan);
-    FuzzyRule *fuzzyRule1 = new FuzzyRule(1, ifKiri_TajamAndDelta_Kiri_Tajam, thenRightCepatAndLeftPelan1);
-    fuzzy->addFuzzyRule(fuzzyRule1);
-  
-    //Belok Kanan tajam
-    FuzzyRuleAntecedent *ifKanan_TajamAndDelta_Kanan_Tajam = new FuzzyRuleAntecedent();
-    ifKanan_TajamAndDelta_Kanan_Tajam->joinWithAND(Kanan_Tajam, Delta_Kanan_Tajam);
-    FuzzyRuleConsequent *thenRightPelanAndLeftCepat = new FuzzyRuleConsequent();
-    thenRightPelanAndLeftCepat->addOutput(RightPelan);
-    thenRightPelanAndLeftCepat->addOutput(LeftCepat);
-    FuzzyRule *fuzzyRule2 = new FuzzyRule(2, ifKanan_TajamAndDelta_Kanan_Tajam, thenRightPelanAndLeftCepat);
-    fuzzy->addFuzzyRule(fuzzyRule2);
-  
-    //Lurus enek 5 (rule 3-7)
-    FuzzyRuleAntecedent *ifKiriAndDelta_Lurus= new FuzzyRuleAntecedent();
-    ifKiriAndDelta_Lurus->joinWithAND(Kiri, Delta_Lurus);
-    FuzzyRuleConsequent *thenRightSedangAndLeftSedang1 = new FuzzyRuleConsequent();
-    thenRightSedangAndLeftSedang1->addOutput(RightSedang);
-    thenRightSedangAndLeftSedang1->addOutput(LeftSedang);
-    FuzzyRule *fuzzyRule3 = new FuzzyRule(3, ifKiriAndDelta_Lurus, thenRightSedangAndLeftSedang1);
-    fuzzy->addFuzzyRule(fuzzyRule3);
-  
-      FuzzyRuleAntecedent *ifLurusAndDelta_Kiri = new FuzzyRuleAntecedent();
-    ifLurusAndDelta_Kiri->joinWithAND(Lurus, Delta_Kiri);
-    FuzzyRuleConsequent *thenRightSedangAndLeftSedang2 = new FuzzyRuleConsequent();
-    thenRightSedangAndLeftSedang2->addOutput(RightSedang);
-    thenRightSedangAndLeftSedang2->addOutput(LeftSedang);
-    FuzzyRule *fuzzyRule4 = new FuzzyRule(4, ifLurusAndDelta_Kiri, thenRightSedangAndLeftSedang2);
-    fuzzy->addFuzzyRule(fuzzyRule4);
-  
-    FuzzyRuleAntecedent *ifLurusAndDelta_Lurus = new FuzzyRuleAntecedent();
-    ifLurusAndDelta_Lurus->joinWithAND(Lurus, Delta_Lurus);
-    FuzzyRuleConsequent *thenRightSedangAndLeftSedang3 = new FuzzyRuleConsequent();
-    thenRightSedangAndLeftSedang3->addOutput(RightSedang);
-    thenRightSedangAndLeftSedang3->addOutput(LeftSedang);
-    FuzzyRule *fuzzyRule5 = new FuzzyRule(5, ifLurusAndDelta_Lurus, thenRightSedangAndLeftSedang3);
-    fuzzy->addFuzzyRule(fuzzyRule5);
-  
-    FuzzyRuleAntecedent *ifLurusAndDelta_Kanan = new FuzzyRuleAntecedent();
-    ifLurusAndDelta_Kanan->joinWithAND(Lurus, Delta_Kanan);
-    FuzzyRuleConsequent *thenRightSedangAndLeftSedang4 = new FuzzyRuleConsequent();
-    thenRightSedangAndLeftSedang4->addOutput(RightSedang);
-    thenRightSedangAndLeftSedang4->addOutput(LeftSedang);
-    FuzzyRule *fuzzyRule6 = new FuzzyRule(6, ifLurusAndDelta_Kanan, thenRightSedangAndLeftSedang4);
-    fuzzy->addFuzzyRule(fuzzyRule6);
-  
-    FuzzyRuleAntecedent *ifKananAndDelta_Lurus = new FuzzyRuleAntecedent();
-    ifKananAndDelta_Lurus->joinWithAND(Kanan, Delta_Lurus);
-    FuzzyRuleConsequent *thenRightSedangAndLeftSedang5 = new FuzzyRuleConsequent();
-    thenRightSedangAndLeftSedang5->addOutput(RightSedang);
-    thenRightSedangAndLeftSedang5->addOutput(LeftSedang);
-    FuzzyRule *fuzzyRule7 = new FuzzyRule(7, ifKananAndDelta_Lurus, thenRightSedangAndLeftSedang5);
-    fuzzy->addFuzzyRule(fuzzyRule7);
-  
-    //Belok kiri enek 9 (Berarti rule 8 - 16)
-    FuzzyRuleAntecedent *ifKiri_TajamAndDelta_Kiri = new FuzzyRuleAntecedent();
-    ifKiri_TajamAndDelta_Kiri->joinWithAND(Kiri_Tajam, Delta_Kiri);
-    FuzzyRuleConsequent *thenRightSedangAndLeftPelan1 = new FuzzyRuleConsequent();
-    thenRightSedangAndLeftPelan1->addOutput(RightSedang);
-    thenRightSedangAndLeftPelan1->addOutput(LeftPelan);
-    FuzzyRule *fuzzyRule8 = new FuzzyRule(8, ifKiri_TajamAndDelta_Kiri, thenRightSedangAndLeftPelan1);
-    fuzzy->addFuzzyRule(fuzzyRule8);
-  
-    FuzzyRuleAntecedent *ifKiri_TajamAndDelta_Lurus = new FuzzyRuleAntecedent();
-    ifKiri_TajamAndDelta_Lurus->joinWithAND(Kiri_Tajam, Delta_Lurus);
-    FuzzyRuleConsequent *thenRightSedangAndLeftPelan2 = new FuzzyRuleConsequent();
-    thenRightSedangAndLeftPelan2->addOutput(RightSedang);
-    thenRightSedangAndLeftPelan2->addOutput(LeftPelan);
-    FuzzyRule *fuzzyRule9 = new FuzzyRule(9, ifKiri_TajamAndDelta_Lurus, thenRightSedangAndLeftPelan2);
-    fuzzy->addFuzzyRule(fuzzyRule9);
-  
-    FuzzyRuleAntecedent *ifKiri_TajamAndDelta_Kanan = new FuzzyRuleAntecedent();
-    ifKiri_TajamAndDelta_Kanan->joinWithAND(Kiri_Tajam, Delta_Kanan);
-    FuzzyRuleConsequent *thenRightSedangAndLeftPelan3 = new FuzzyRuleConsequent();
-    thenRightSedangAndLeftPelan3->addOutput(RightSedang);
-    thenRightSedangAndLeftPelan3->addOutput(LeftPelan);
-    FuzzyRule *fuzzyRule10 = new FuzzyRule(10, ifKiri_TajamAndDelta_Kanan, thenRightSedangAndLeftPelan3);
-    fuzzy->addFuzzyRule(fuzzyRule10);
-  
-    FuzzyRuleAntecedent *ifKiri_TajamAndDelta_Kanan_Tajam = new FuzzyRuleAntecedent();
-    ifKiri_TajamAndDelta_Kanan_Tajam->joinWithAND(Kiri_Tajam, Delta_Kanan_Tajam);
-    FuzzyRuleConsequent *thenRightSedangAndLeftPelan4 = new FuzzyRuleConsequent();
-    thenRightSedangAndLeftPelan4->addOutput(RightSedang);
-    thenRightSedangAndLeftPelan4->addOutput(LeftPelan);
-    FuzzyRule *fuzzyRule11 = new FuzzyRule(11, ifKiri_TajamAndDelta_Kanan_Tajam, thenRightSedangAndLeftPelan4);
-    fuzzy->addFuzzyRule(fuzzyRule11);
-  
-    FuzzyRuleAntecedent *ifKiriAndDelta_Kiri_tajam = new FuzzyRuleAntecedent();
-    ifKiriAndDelta_Kiri_tajam->joinWithAND(Kiri, Delta_Kiri_Tajam);
-    FuzzyRuleConsequent *thenRightSedangAndLeftPelan5 = new FuzzyRuleConsequent();
-    thenRightSedangAndLeftPelan5->addOutput(RightSedang);
-    thenRightSedangAndLeftPelan5->addOutput(LeftPelan);
-    FuzzyRule *fuzzyRule12 = new FuzzyRule(12, ifKiriAndDelta_Kiri_tajam, thenRightSedangAndLeftPelan5);
-    fuzzy->addFuzzyRule(fuzzyRule12);
-  
-    FuzzyRuleAntecedent *ifKiriAndDelta_Kiri_Tajam = new FuzzyRuleAntecedent();
-    ifKiriAndDelta_Kiri_Tajam->joinWithAND(Kiri, Delta_Kiri_Tajam);
-    FuzzyRuleConsequent *thenRightSedangAndLeftPelan6 = new FuzzyRuleConsequent();
-    thenRightSedangAndLeftPelan6->addOutput(RightSedang);
-    thenRightSedangAndLeftPelan6->addOutput(LeftPelan);
-    FuzzyRule *fuzzyRule13 = new FuzzyRule(13, ifKiriAndDelta_Kiri_Tajam, thenRightSedangAndLeftPelan6);
-    fuzzy->addFuzzyRule(fuzzyRule13);
-  
-      FuzzyRuleAntecedent *ifKiriAndDelta_Kanan = new FuzzyRuleAntecedent();
-    ifKiriAndDelta_Kanan->joinWithAND(Kiri, Delta_Kanan);
-    FuzzyRuleConsequent *thenRightSedangAndLeftPelan7 = new FuzzyRuleConsequent();
-    thenRightSedangAndLeftPelan7->addOutput(RightSedang);
-    thenRightSedangAndLeftPelan7->addOutput(LeftPelan);
-    FuzzyRule *fuzzyRule14 = new FuzzyRule(14, ifKiriAndDelta_Kanan, thenRightSedangAndLeftPelan7);
-    fuzzy->addFuzzyRule(fuzzyRule14);
-  
-    FuzzyRuleAntecedent *ifKiriAndDelta_Kanan_Tajam = new FuzzyRuleAntecedent();
-    ifKiriAndDelta_Kanan_Tajam->joinWithAND(Kiri, Delta_Kanan_Tajam);
-    FuzzyRuleConsequent *thenRightSedangAndLeftPelan8 = new FuzzyRuleConsequent();
-    thenRightSedangAndLeftPelan8->addOutput(RightSedang);
-    thenRightSedangAndLeftPelan8->addOutput(LeftPelan);
-    FuzzyRule *fuzzyRule15 = new FuzzyRule(15, ifKiriAndDelta_Kanan_Tajam, thenRightSedangAndLeftPelan8);
-    fuzzy->addFuzzyRule(fuzzyRule15);
-  
-    FuzzyRuleAntecedent *ifLurusAndDelta_Kiri_Tajam = new FuzzyRuleAntecedent();
-    ifLurusAndDelta_Kiri_Tajam->joinWithAND(Lurus, Delta_Kiri_Tajam);
-    FuzzyRuleConsequent *thenRightSedangAndLeftPelan9 = new FuzzyRuleConsequent();
-    thenRightSedangAndLeftPelan9->addOutput(RightSedang);
-    thenRightSedangAndLeftPelan9->addOutput(LeftPelan);
-    FuzzyRule *fuzzyRule16 = new FuzzyRule(16, ifLurusAndDelta_Kiri_Tajam, thenRightSedangAndLeftPelan9);
-    fuzzy->addFuzzyRule(fuzzyRule16);
-  
-    
-    //belok kanan enek 9 (rule 16 -25)
-    FuzzyRuleAntecedent *ifLurusAndDelta_Kanan_Tajam = new FuzzyRuleAntecedent();
-    ifLurusAndDelta_Kanan_Tajam->joinWithAND(Lurus, Delta_Kanan_Tajam);
-    FuzzyRuleConsequent *thenRightPelanAndLeftSedang1 = new FuzzyRuleConsequent();
-    thenRightPelanAndLeftSedang1->addOutput(RightPelan);
-    thenRightPelanAndLeftSedang1->addOutput(LeftSedang);
-    FuzzyRule *fuzzyRule17 = new FuzzyRule(17, ifLurusAndDelta_Kanan_Tajam, thenRightPelanAndLeftSedang1);
-    fuzzy->addFuzzyRule(fuzzyRule17);
-  
-    FuzzyRuleAntecedent *ifKananAndDelta_Kiri_Tajam = new FuzzyRuleAntecedent();
-    ifKananAndDelta_Kiri_Tajam->joinWithAND(Kanan, Delta_Kiri_Tajam);
-    FuzzyRuleConsequent *thenRightPelanAndLeftSedang2 = new FuzzyRuleConsequent();
-    thenRightPelanAndLeftSedang2->addOutput(RightPelan);
-    thenRightPelanAndLeftSedang2->addOutput(LeftSedang);
-    FuzzyRule *fuzzyRule18 = new FuzzyRule(18, ifKananAndDelta_Kiri_Tajam, thenRightPelanAndLeftSedang2);
-    fuzzy->addFuzzyRule(fuzzyRule18);
-    
-    FuzzyRuleAntecedent *ifKananAndDelta_Kiri= new FuzzyRuleAntecedent();
-    ifKananAndDelta_Kiri->joinWithAND(Kanan, Delta_Kiri);
-    FuzzyRuleConsequent *thenRightPelanAndLeftSedang3 = new FuzzyRuleConsequent();
-    thenRightPelanAndLeftSedang3->addOutput(RightPelan);
-    thenRightPelanAndLeftSedang3->addOutput(LeftSedang);
-    FuzzyRule *fuzzyRule19 = new FuzzyRule(19, ifKananAndDelta_Kiri, thenRightPelanAndLeftSedang3);
-    fuzzy->addFuzzyRule(fuzzyRule19);
-  
-    FuzzyRuleAntecedent *ifKananAndDelta_Kanan= new FuzzyRuleAntecedent();
-    ifKananAndDelta_Kanan->joinWithAND(Kanan, Delta_Kanan);
-    FuzzyRuleConsequent *thenRightPelanAndLeftSedang4 = new FuzzyRuleConsequent();
-    thenRightPelanAndLeftSedang4->addOutput(RightPelan);
-    thenRightPelanAndLeftSedang4->addOutput(LeftSedang);
-    FuzzyRule *fuzzyRule20 = new FuzzyRule(20, ifKananAndDelta_Kanan, thenRightPelanAndLeftSedang4);
-    fuzzy->addFuzzyRule(fuzzyRule20);
-  
-    FuzzyRuleAntecedent *ifKananAndDelta_Kanan_Tajam = new FuzzyRuleAntecedent();
-    ifKananAndDelta_Kanan_Tajam->joinWithAND(Kanan, Delta_Kanan_Tajam);
-    FuzzyRuleConsequent *thenRightPelanAndLeftSedang5 = new FuzzyRuleConsequent();
-    thenRightPelanAndLeftSedang5->addOutput(RightPelan);
-    thenRightPelanAndLeftSedang5->addOutput(LeftSedang);
-    FuzzyRule *fuzzyRule21 = new FuzzyRule(21, ifKananAndDelta_Kanan_Tajam, thenRightPelanAndLeftSedang5);
-    fuzzy->addFuzzyRule(fuzzyRule21);
-  
-    FuzzyRuleAntecedent *ifKanan_TajamAndDelta_Kiri_Tajam = new FuzzyRuleAntecedent();
-    ifKanan_TajamAndDelta_Kiri_Tajam->joinWithAND(Kanan_Tajam, Delta_Kiri_Tajam);
-    FuzzyRuleConsequent *thenRightPelanAndLeftSedang6 = new FuzzyRuleConsequent();
-    thenRightPelanAndLeftSedang6->addOutput(RightPelan);
-    thenRightPelanAndLeftSedang6->addOutput(LeftSedang);
-    FuzzyRule *fuzzyRule22 = new FuzzyRule(22, ifKanan_TajamAndDelta_Kiri_Tajam, thenRightPelanAndLeftSedang6);
-    fuzzy->addFuzzyRule(fuzzyRule22);
-  
-    FuzzyRuleAntecedent *ifKanan_TajamAndDelta_Kiri = new FuzzyRuleAntecedent();
-    ifKanan_TajamAndDelta_Kiri->joinWithAND(Kanan_Tajam, Delta_Kiri);
-    FuzzyRuleConsequent *thenRightPelanAndLeftSedang7 = new FuzzyRuleConsequent();
-    thenRightPelanAndLeftSedang7->addOutput(RightPelan);
-    thenRightPelanAndLeftSedang7->addOutput(LeftSedang);
-    FuzzyRule *fuzzyRule23 = new FuzzyRule(23, ifKanan_TajamAndDelta_Kiri, thenRightPelanAndLeftSedang7);
-    fuzzy->addFuzzyRule(fuzzyRule23);
-  
-    FuzzyRuleAntecedent *ifKanan_TajamAndDelta_Lurus = new FuzzyRuleAntecedent();
-    ifKanan_TajamAndDelta_Lurus->joinWithAND(Kanan_Tajam, Delta_Lurus);
-    FuzzyRuleConsequent *thenRightPelanAndLeftSedang8 = new FuzzyRuleConsequent();
-    thenRightPelanAndLeftSedang8->addOutput(RightPelan);
-    thenRightPelanAndLeftSedang8->addOutput(LeftSedang);
-    FuzzyRule *fuzzyRule24 = new FuzzyRule(24, ifKanan_TajamAndDelta_Lurus, thenRightPelanAndLeftSedang8);
-    fuzzy->addFuzzyRule(fuzzyRule24);
-  
-    FuzzyRuleAntecedent *ifKanan_TajamAndDelta_Kanan = new FuzzyRuleAntecedent();
-    ifKanan_TajamAndDelta_Kanan->joinWithAND(Kanan_Tajam, Delta_Kanan);
-    FuzzyRuleConsequent *thenRightPelanAndLeftSedang9 = new FuzzyRuleConsequent();
-    thenRightPelanAndLeftSedang9->addOutput(RightPelan);
-    thenRightPelanAndLeftSedang9->addOutput(LeftSedang);
-    FuzzyRule *fuzzyRule25 = new FuzzyRule(25, ifKanan_TajamAndDelta_Kanan, thenRightPelanAndLeftSedang9);
-    fuzzy->addFuzzyRule(fuzzyRule25);
+// Menambahkan aturan fuzzy menggunakan fungsi
+    addFuzzyRule(1, Kiri_Tajam, Delta_Kiri_Tajam, RightCepat, LeftPelan); //Kiri_Tajam
+    addFuzzyRule(2, Kanan_Tajam, Delta_Kanan_Tajam, RightPelan, LeftCepat); //Kanan_Tajam
+    //////////////// Lurus
+    addFuzzyRule(3, Kiri, Delta_Kanan_Tajam, RightSedang, LeftSedang); 
+    addFuzzyRule(4, Lurus, Delta_Kiri, RightSedang, LeftSedang);
+    addFuzzyRule(5, Lurus, Delta_Lurus, RightSedang, LeftSedang);
+    addFuzzyRule(6, Lurus, Delta_Kanan, RightSedang, LeftSedang);
+    addFuzzyRule(7, Kanan, Delta_Kiri_Tajam, RightSedang, LeftSedang);
+    //////////////// Kiri
+    addFuzzyRule(8, Kiri_Tajam, Delta_Kiri, RightSedang, LeftPelan);
+    addFuzzyRule(9, Kiri_Tajam, Delta_Lurus, RightSedang, LeftPelan); 
+    addFuzzyRule(10, Kiri_Tajam, Delta_Kanan, RightSedang, LeftPelan);
+    addFuzzyRule(11, Kiri_Tajam, Delta_Kanan_Tajam, RightSedang, LeftPelan);
+    addFuzzyRule(12, Kiri, Delta_Kiri_Tajam, RightSedang, LeftPelan);
+    addFuzzyRule(13, Kiri, Delta_Kiri, RightSedang, LeftPelan);
+    addFuzzyRule(14, Kiri, Delta_Lurus, RightSedang, LeftPelan);
+    addFuzzyRule(15, Kiri, Delta_Kanan_Tajam, RightSedang, LeftPelan);
+    addFuzzyRule(16, Lurus, Delta_Kiri_Tajam, RightSedang, LeftPelan);
+    //////////////// Kanan
+    addFuzzyRule(17, Lurus, Delta_Kanan_Tajam, RightPelan, LeftSedang);
+    addFuzzyRule(18, Kanan, Delta_Kiri, RightPelan, LeftSedang);
+    addFuzzyRule(19, Kanan, Delta_Lurus, RightPelan, LeftSedang);
+    addFuzzyRule(20, Kanan, Delta_Kanan, RightPelan, LeftSedang);
+    addFuzzyRule(21, Kanan, Delta_Kanan_Tajam, RightPelan, LeftSedang);
+    addFuzzyRule(22, Kanan_Tajam, Delta_Kiri_Tajam, RightPelan, LeftSedang);
+    addFuzzyRule(23, Kanan_Tajam, Delta_Kiri, RightPelan, LeftSedang);
+    addFuzzyRule(24, Kanan_Tajam, Delta_Lurus, RightPelan, LeftSedang);
+    addFuzzyRule(25, Kanan_Tajam, Delta_Kanan, RightPelan, LeftSedang);
 }
 
 void loop() {
@@ -436,38 +270,46 @@ void loop() {
           int pwmValueKanan = 0;
           int pwmValueKiri = 0;
     
-           if (output1 >= 175 && output2 >= 50 && output2 <= 100) { // BelokKiriTajam
-            pwmValueKanan = 60; // Kecepatan motor kanan tinggi
-            pwmValueKiri = -10; // Kecepatan motor kiri sedang
+           if (output1 >= 60 && output2 >= 0 && output2 <= 40) { // BelokKiriTajam
+            Serial.print("Belok Kiri Tajam");
+            pwmValueKanan = 50; // Kecepatan motor kanan tinggi
+            pwmValueKiri = -5; // Kecepatan motor kiri sedang
             analogWrite(motorLeftPin1, 0);
             analogWrite(motorLeftPin2,  abs(pwmValueKiri));
             analogWrite(motorRightPin1, 0);
             analogWrite(motorRightPin2, abs(pwmValueKanan));
             
-          } else if (output1 >= 100 && output1 <= 175 && output2 >=50 && output2 <= 100) { // BelokKiri
-            pwmValueKanan = 50; // Kecepatan motor kanan sedang
+          } else if (output1 >= 20 && output1 <= 80 && output2 >=0 && output2 <= 40) { // BelokKiri
+            Serial.print("Belok Kiri");
+            pwmValueKanan = 40; // Kecepatan motor kanan sedang
             pwmValueKiri = 5; // Kecepatan motor kiri rendah
-             analogWrite(motorLeftPin1, 0);
+            analogWrite(motorLeftPin1, 0);
             analogWrite(motorLeftPin2,  abs(pwmValueKiri));
             analogWrite(motorRightPin1, 0);
             analogWrite(motorRightPin2, abs(pwmValueKanan));
-          } else if (output1 >= 100 && output1 <= 175 && output2 >= 100 && output2 <= 175) { // MajuLurus
-            pwmValueKanan = 40; // Kecepatan motor kanan sedang
-            pwmValueKiri = 40; // Kecepatan motor kiri sedang
+            
+          } else if (output1 >= 20 && output1 <= 80 && output2 >= 20 && output2 <= 80) { // MajuLurus
+            Serial.print("Maju Lurus");
+            pwmValueKanan = 30; // Kecepatan motor kanan sedang
+            pwmValueKiri = 30; // Kecepatan motor kiri sedang
             analogWrite(motorLeftPin1,  abs(pwmValueKiri));
             analogWrite(motorLeftPin2, 0);
             analogWrite(motorRightPin1, abs(pwmValueKanan));
             analogWrite(motorRightPin2, 0);
-           } else if (output1 >= 50 && output1 <= 100 && output2 >= 100 && output2 <= 175) { // BelokKanan
+            
+           } else if (output1 >= 0 && output1 <= 40 && output2 >= 20 && output2 <= 80) { // BelokKanan
+            Serial.print("Belok Kanan");
             pwmValueKanan = 5; // Kecepatan motor kanan rendah
-            pwmValueKiri = 50; // Kecepatan motor kiri sedang
+            pwmValueKiri = 40; // Kecepatan motor kiri sedang
             analogWrite(motorLeftPin1,  abs(pwmValueKiri));
             analogWrite(motorLeftPin2, 0);
             analogWrite(motorRightPin1, 0);
             analogWrite(motorRightPin2, abs(pwmValueKanan));
-           } else if (output1 >= 50 && output1 <= 100 && output2 >= 175) { // BelokKananTajam
-            pwmValueKanan = -10; // Kecepatan motor kanan sedang
-            pwmValueKiri = 60; // Kecepatan motor kiri tinggi
+            
+           } else if (output1 >= 0 && output1 <= 40 && output2 >= 60) { // BelokKananTajam
+            Serial.print("Belok Kanan Tajam");
+            pwmValueKanan = -5; // Kecepatan motor kanan sedang
+            pwmValueKiri = 50; // Kecepatan motor kiri tinggi
             analogWrite(motorLeftPin1,  abs(pwmValueKiri));
             analogWrite(motorLeftPin2, 0);
             analogWrite(motorRightPin1, 0);
