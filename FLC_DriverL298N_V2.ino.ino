@@ -30,18 +30,18 @@ Fuzzy *fuzzy = new Fuzzy();
 //FuzzySet *Delta_Kanan_Tajam = new FuzzySet(30, 50, 70, 70);
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-FuzzySet *Kiri_Tajam = new FuzzySet(-60, -50, -40, -30);
-FuzzySet *Kiri = new FuzzySet(-40, -30, -20, -10);
-FuzzySet *Lurus = new FuzzySet(-10, -5, 5, 10);
-FuzzySet *Kanan = new FuzzySet(10, 20, 30, 40);
-FuzzySet *Kanan_Tajam = new FuzzySet(30, 40, 50, 60);
+FuzzySet *Kiri_Tajam = new FuzzySet(-75, -75, -60, -45);
+FuzzySet *Kiri = new FuzzySet(-60, -45, -30, -15);
+FuzzySet *Lurus = new FuzzySet(-30, -15, 15, 30);
+FuzzySet *Kanan = new FuzzySet(15, 30, 45, 60);
+FuzzySet *Kanan_Tajam = new FuzzySet(45, 60, 75, 75);
 
 // Input membership function untuk delta_error
-FuzzySet *Delta_Kiri_Tajam = new FuzzySet(-60, -50, -40, -30);
-FuzzySet *Delta_Kiri = new FuzzySet(-40, -30, -20, -10);
-FuzzySet *Delta_Lurus = new FuzzySet(-10, -5, 5, 10);
-FuzzySet *Delta_Kanan = new FuzzySet(10, 20, 30, 40);
-FuzzySet *Delta_Kanan_Tajam = new FuzzySet(30, 40, 50, 60);
+FuzzySet *Delta_Kiri_Tajam = new FuzzySet(-75, -75, -60, -45);
+FuzzySet *Delta_Kiri = new FuzzySet(-60, -45, -30, -15);
+FuzzySet *Delta_Lurus = new FuzzySet(-30, -15, 15, 30);
+FuzzySet *Delta_Kanan = new FuzzySet(15, 30, 45, 60);
+FuzzySet *Delta_Kanan_Tajam = new FuzzySet(45, 60, 75, 75);
 
 
 //// Output membership function (kecepatan motor kanan)
