@@ -24,7 +24,7 @@ int ledHijau = 33;
 
 ///durasi belok
 int turnDuration = 4000;
-//durasi maju 
+//durasi maju
 int fwdDuration = 1500;
 
 int motorSpeed;
@@ -48,21 +48,34 @@ float errorValue;
 Fuzzy *fuzzy = new Fuzzy();
 
 // Mendefinisikan FuzzySet untuk input dan output
+//FuzzySet *Kiri_Tajam = new FuzzySet(-60, -50, -40, -30);
+//FuzzySet *Kiri = new FuzzySet(-40, -30, -20, -10);
+//FuzzySet *Lurus = new FuzzySet(-20, -10, 10, 20);
+//FuzzySet *Kanan = new FuzzySet(10, 20, 30, 40);
+//FuzzySet *Kanan_Tajam = new FuzzySet(30, 40, 50, 60);
+//
+//// Input membership function untuk delta_error
+//FuzzySet *Delta_Kiri_Tajam = new FuzzySet(-60, -50, -40, -30);
+//FuzzySet *Delta_Kiri = new FuzzySet(-40, -30, -20, -10);
+//FuzzySet *Delta_Lurus = new FuzzySet(-20, -10, 10, 20);
+//FuzzySet *Delta_Kanan = new FuzzySet(10, 20, 30, 40);
+//FuzzySet *Delta_Kanan_Tajam = new FuzzySet(30, 40, 50, 60);
 
 // Input membership function untuk error
 
-FuzzySet *Kiri_Tajam = new FuzzySet(-60, -50, -40, -30);
-FuzzySet *Kiri = new FuzzySet(-40, -30, -20, -10);
+FuzzySet *Kiri_Tajam = new FuzzySet(-60, -60, -20, -15);
+FuzzySet *Kiri = new FuzzySet(-20, -15, -10, -5);
 FuzzySet *Lurus = new FuzzySet(-10, -5, 5, 10);
-FuzzySet *Kanan = new FuzzySet(10, 20, 30, 40);
-FuzzySet *Kanan_Tajam = new FuzzySet(30, 40, 50, 60);
+FuzzySet *Kanan = new FuzzySet(5, 10, 15, 20);
+FuzzySet *Kanan_Tajam = new FuzzySet(15, 20, 60, 60);
 
-// Input membership function untuk delta_error
-FuzzySet *Delta_Kiri_Tajam = new FuzzySet(-60, -50, -40, -30);
-FuzzySet *Delta_Kiri = new FuzzySet(-40, -30, -20, -10);
+//// Input membership function untuk delta_error
+FuzzySet *Delta_Kiri_Tajam = new FuzzySet(-60, -60, -20, -15);
+FuzzySet *Delta_Kiri = new FuzzySet(-20, -15, -10, -5);
 FuzzySet *Delta_Lurus = new FuzzySet(-10, -5, 5, 10);
-FuzzySet *Delta_Kanan = new FuzzySet(10, 20, 30, 40);
-FuzzySet *Delta_Kanan_Tajam = new FuzzySet(30, 40, 50, 60);
+FuzzySet *Delta_Kanan = new FuzzySet(5, 10, 15, 20);
+FuzzySet *Delta_Kanan_Tajam = new FuzzySet(15, 20, 60, 60);
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //// Output membership function (kecepatan motor kanan)
@@ -78,12 +91,12 @@ FuzzySet *Delta_Kanan_Tajam = new FuzzySet(30, 40, 50, 60);
 //FuzzySet *LeftSedang = new FuzzySet(100, 125, 150, 175);
 //FuzzySet *LeftCepat = new FuzzySet(175, 200, 225, 225);
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //// Output membership function (kecepatan motor kanan)
 //FuzzySet *RightStop = new FuzzySet(0, 0, 5, 10);
 FuzzySet *RightPelan = new FuzzySet(0, 0, 20, 40);
 FuzzySet *RightSedang = new FuzzySet(20, 40, 60, 80);
 FuzzySet *RightCepat = new FuzzySet(60, 80, 100, 120);
+
 
 //// Output membership function (kecepatan motor kiri)
 //FuzzySet *LeftStop = new FuzzySet(0, 0, 0.5, 1);
@@ -99,16 +112,16 @@ float previousError = 0; // Menyimpan nilai error sebelumnya
 int ch_3, ch_1, ch_5, ch_6, ch_7, ch_8;
 
 void addFuzzyRule(int ruleNumber, FuzzySet* input1, FuzzySet* input2, FuzzySet* output1, FuzzySet* output2) {
-    FuzzyRuleAntecedent *antecedent = new FuzzyRuleAntecedent();
-    antecedent->joinWithAND(input1, input2);
-    
-    FuzzyRuleConsequent *consequent = new FuzzyRuleConsequent();
-    consequent->addOutput(output1);
-    consequent->addOutput(output2);
-    
-    FuzzyRule *fuzzyRule = new FuzzyRule(ruleNumber, antecedent, consequent);
-    fuzzy->addFuzzyRule(fuzzyRule);
+  FuzzyRuleAntecedent *antecedent = new FuzzyRuleAntecedent();
+  antecedent->joinWithAND(input1, input2);
 
+  FuzzyRuleConsequent *consequent = new FuzzyRuleConsequent();
+  consequent->addOutput(output1);
+  consequent->addOutput(output2);
+
+  FuzzyRule *fuzzyRule = new FuzzyRule(ruleNumber, antecedent, consequent);
+  fuzzy->addFuzzyRule(fuzzyRule);
+}
 void setup() {
   Serial.begin(115200);
   IBus.begin(Serial2, 1);
@@ -163,35 +176,35 @@ void setup() {
   MotorKiri->addFuzzySet(LeftCepat);
   fuzzy->addFuzzyOutput(MotorKiri);
 
-// Menambahkan aturan fuzzy menggunakan fungsi
-    addFuzzyRule(1, Kiri_Tajam, Delta_Kiri_Tajam, RightCepat, LeftPelan); //Kiri_Tajam
-    addFuzzyRule(2, Kanan_Tajam, Delta_Kanan_Tajam, RightPelan, LeftCepat); //Kanan_Tajam
-    //////////////// Lurus
-    addFuzzyRule(3, Kiri, Delta_Kanan_Tajam, RightSedang, LeftSedang); 
-    addFuzzyRule(4, Lurus, Delta_Kiri, RightSedang, LeftSedang);
-    addFuzzyRule(5, Lurus, Delta_Lurus, RightSedang, LeftSedang);
-    addFuzzyRule(6, Lurus, Delta_Kanan, RightSedang, LeftSedang);
-    addFuzzyRule(7, Kanan, Delta_Kiri_Tajam, RightSedang, LeftSedang);
-    //////////////// Kiri
-    addFuzzyRule(8, Kiri_Tajam, Delta_Kiri, RightSedang, LeftPelan);
-    addFuzzyRule(9, Kiri_Tajam, Delta_Lurus, RightSedang, LeftPelan); 
-    addFuzzyRule(10, Kiri_Tajam, Delta_Kanan, RightSedang, LeftPelan);
-    addFuzzyRule(11, Kiri_Tajam, Delta_Kanan_Tajam, RightSedang, LeftPelan);
-    addFuzzyRule(12, Kiri, Delta_Kiri_Tajam, RightSedang, LeftPelan);
-    addFuzzyRule(13, Kiri, Delta_Kiri, RightSedang, LeftPelan);
-    addFuzzyRule(14, Kiri, Delta_Lurus, RightSedang, LeftPelan);
-    addFuzzyRule(15, Kiri, Delta_Kanan_Tajam, RightSedang, LeftPelan);
-    addFuzzyRule(16, Lurus, Delta_Kiri_Tajam, RightSedang, LeftPelan);
-    //////////////// Kanan
-    addFuzzyRule(17, Lurus, Delta_Kanan_Tajam, RightPelan, LeftSedang);
-    addFuzzyRule(18, Kanan, Delta_Kiri, RightPelan, LeftSedang);
-    addFuzzyRule(19, Kanan, Delta_Lurus, RightPelan, LeftSedang);
-    addFuzzyRule(20, Kanan, Delta_Kanan, RightPelan, LeftSedang);
-    addFuzzyRule(21, Kanan, Delta_Kanan_Tajam, RightPelan, LeftSedang);
-    addFuzzyRule(22, Kanan_Tajam, Delta_Kiri_Tajam, RightPelan, LeftSedang);
-    addFuzzyRule(23, Kanan_Tajam, Delta_Kiri, RightPelan, LeftSedang);
-    addFuzzyRule(24, Kanan_Tajam, Delta_Lurus, RightPelan, LeftSedang);
-    addFuzzyRule(25, Kanan_Tajam, Delta_Kanan, RightPelan, LeftSedang);
+  // Menambahkan aturan fuzzy menggunakan fungsi
+  addFuzzyRule(1, Kiri_Tajam, Delta_Kiri_Tajam, RightCepat, LeftPelan); //Kiri_Tajam
+  addFuzzyRule(2, Kanan_Tajam, Delta_Kanan_Tajam, RightPelan, LeftCepat); //Kanan_Tajam
+  //////////////// Lurus
+  addFuzzyRule(3, Kiri, Delta_Kanan_Tajam, RightSedang, LeftSedang);
+  addFuzzyRule(4, Lurus, Delta_Kiri, RightSedang, LeftSedang);
+  addFuzzyRule(5, Lurus, Delta_Lurus, RightSedang, LeftSedang);
+  addFuzzyRule(6, Lurus, Delta_Kanan, RightSedang, LeftSedang);
+  addFuzzyRule(7, Kanan, Delta_Kiri_Tajam, RightSedang, LeftSedang);
+  //////////////// Kiri
+  addFuzzyRule(8, Kiri_Tajam, Delta_Kiri, RightSedang, LeftPelan);
+  addFuzzyRule(9, Kiri_Tajam, Delta_Lurus, RightSedang, LeftPelan);
+  addFuzzyRule(10, Kiri_Tajam, Delta_Kanan, RightSedang, LeftPelan);
+  addFuzzyRule(11, Kiri_Tajam, Delta_Kanan_Tajam, RightSedang, LeftPelan);
+  addFuzzyRule(12, Kiri, Delta_Kiri_Tajam, RightSedang, LeftPelan);
+  addFuzzyRule(13, Kiri, Delta_Kiri, RightSedang, LeftPelan);
+  addFuzzyRule(14, Kiri, Delta_Lurus, RightSedang, LeftPelan);
+  addFuzzyRule(15, Kiri, Delta_Kanan_Tajam, RightSedang, LeftPelan);
+  addFuzzyRule(16, Lurus, Delta_Kiri_Tajam, RightSedang, LeftPelan);
+  //////////////// Kanan
+  addFuzzyRule(17, Lurus, Delta_Kanan_Tajam, RightPelan, LeftSedang);
+  addFuzzyRule(18, Kanan, Delta_Kiri, RightPelan, LeftSedang);
+  addFuzzyRule(19, Kanan, Delta_Lurus, RightPelan, LeftSedang);
+  addFuzzyRule(20, Kanan, Delta_Kanan, RightPelan, LeftSedang);
+  addFuzzyRule(21, Kanan, Delta_Kanan_Tajam, RightPelan, LeftSedang);
+  addFuzzyRule(22, Kanan_Tajam, Delta_Kiri_Tajam, RightPelan, LeftSedang);
+  addFuzzyRule(23, Kanan_Tajam, Delta_Kiri, RightPelan, LeftSedang);
+  addFuzzyRule(24, Kanan_Tajam, Delta_Lurus, RightPelan, LeftSedang);
+  addFuzzyRule(25, Kanan_Tajam, Delta_Kanan, RightPelan, LeftSedang);
 }
 
 void loop() {
@@ -225,122 +238,122 @@ void loop() {
     ch_6 = 1500;
     ch_7 = 1500;
     ch_8 = 1500;
-//    otomatis();
+    //    otomatis();
     unsigned long currentTime = millis();
     unsigned long elapsedTime = currentTime - previousTime;
-  
+
     // Pastikan waktu yang telah berlalu mencapai sampleTime sebelum melakukan perhitungan PID
     if (elapsedTime >= sampleTime) {
       // Reset previousTime ke currentTime
       previousTime = currentTime;
-  
+
       if (Serial.available() > 0) {
         receivedData = Serial.readStringUntil('\n');
-  //      Serial.print("receivedData: ");
-  //      Serial.println(receivedData);
+        //      Serial.print("receivedData: ");
+        //      Serial.println(receivedData);
         lastReceiveTime = millis();
-  
+
         if (receivedData.startsWith("error_")) {
           String errorString = receivedData.substring(6); // Mengambil substring setelah "error_"
           float currentError = errorString.toFloat(); // Mengkonversi substring ke nilai float
-    //      float deltaError = previousError - 0; // Menghitung delta_error dari nilai previousError dikurangi 0
+          //      float deltaError = previousError - 0; // Menghitung delta_error dari nilai previousError dikurangi 0
           float deltaError = currentError - previousError; // Menghitung delta error dari error aktual - error sebelumnya
-    
-    
+
+
           Serial.print("error : ");
           Serial.println(currentError);
           Serial.print("delta error : ");
           Serial.println(deltaError);
-    
+
           fuzzy->setInput(1, currentError); // Mengatur input fuzzy untuk error
           fuzzy->setInput(2, deltaError); // Mengatur input fuzzy untuk delta_error
-      
+
           fuzzy->fuzzify(); // Melakukan fuzzifikasi
-    
-           // Mendefuzzifikasi output /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+          // Mendefuzzifikasi output /////////////////////////////////////////////////////////////////////////////////////////////////////////////
           float output1 = fuzzy->defuzzify(1);
           float output2 = fuzzy->defuzzify(2);
-    
+
           Serial.print("Output fuzzy1: ");
           Serial.println(output1);
           Serial.print("Output fuzzy2: ");
           Serial.println(output2);
-    
+
           // Mengatur kecepatan motor berdasarkan hasil defuzzifikasi dan aturan fuzzy
           int pwmValueKanan = 0;
           int pwmValueKiri = 0;
-    
-           if (output1 >= 60 && output2 >= 0 && output2 <= 40) { // BelokKiriTajam
-            Serial.print("Belok Kiri Tajam");
-            pwmValueKanan = 50; // Kecepatan motor kanan tinggi
-            pwmValueKiri = -5; // Kecepatan motor kiri sedang
-            analogWrite(motorLeftPin1, 0);
-            analogWrite(motorLeftPin2,  abs(pwmValueKiri));
-            analogWrite(motorRightPin1, 0);
-            analogWrite(motorRightPin2, abs(pwmValueKanan));
-            
-          } else if (output1 >= 20 && output1 <= 80 && output2 >=0 && output2 <= 40) { // BelokKiri
-            Serial.print("Belok Kiri");
-            pwmValueKanan = 40; // Kecepatan motor kanan sedang
-            pwmValueKiri = 5; // Kecepatan motor kiri rendah
-            analogWrite(motorLeftPin1, 0);
-            analogWrite(motorLeftPin2,  abs(pwmValueKiri));
-            analogWrite(motorRightPin1, 0);
-            analogWrite(motorRightPin2, abs(pwmValueKanan));
-            
-          } else if (output1 >= 20 && output1 <= 80 && output2 >= 20 && output2 <= 80) { // MajuLurus
-            Serial.print("Maju Lurus");
-            pwmValueKanan = 30; // Kecepatan motor kanan sedang
+
+          if (output1 >= 60 && output2 >= 0 && output2 <= 40) { // BelokKiriTajam
+            Serial.println("Belok Kiri Tajam");
+            pwmValueKanan = 70; // Kecepatan motor kanan tinggi
             pwmValueKiri = 30; // Kecepatan motor kiri sedang
+            analogWrite(motorLeftPin1, 0);
+            analogWrite(motorLeftPin2, abs(pwmValueKiri));
+            analogWrite(motorRightPin1, abs(pwmValueKanan));
+            analogWrite(motorRightPin2, 0);
+
+          } else if (output1 >= 20 && output1 <= 80 && output2 >= 0 && output2 <= 40) { // BelokKiri
+            Serial.println("Belok Kiri");
+            pwmValueKanan = 60; // Kecepatan motor kanan sedang
+            pwmValueKiri = 25; // Kecepatan motor kiri rendah
+            analogWrite(motorLeftPin1, 0);
+            analogWrite(motorLeftPin2, abs(pwmValueKiri));
+            analogWrite(motorRightPin1, abs(pwmValueKanan));
+            analogWrite(motorRightPin2, 0);
+
+          } else if (output1 >= 20 && output1 <= 80 && output2 >= 20 && output2 <= 80) { // MajuLurus
+            Serial.println("Maju Lurus");
+            pwmValueKanan = 40; // Kecepatan motor kanan sedang
+            pwmValueKiri = 40; // Kecepatan motor kiri sedang
             analogWrite(motorLeftPin1,  abs(pwmValueKiri));
             analogWrite(motorLeftPin2, 0);
             analogWrite(motorRightPin1, abs(pwmValueKanan));
             analogWrite(motorRightPin2, 0);
-            
-           } else if (output1 >= 0 && output1 <= 40 && output2 >= 20 && output2 <= 80) { // BelokKanan
-            Serial.print("Belok Kanan");
-            pwmValueKanan = 5; // Kecepatan motor kanan rendah
-            pwmValueKiri = 40; // Kecepatan motor kiri sedang
+
+          } else if (output1 >= 0 && output1 <= 40 && output2 >= 20 && output2 <= 80) { // BelokKanan
+            Serial.println("Belok Kanan");
+            pwmValueKanan = 25; // Kecepatan motor kanan rendah
+            pwmValueKiri = 60; // Kecepatan motor kiri sedang
             analogWrite(motorLeftPin1,  abs(pwmValueKiri));
             analogWrite(motorLeftPin2, 0);
             analogWrite(motorRightPin1, 0);
             analogWrite(motorRightPin2, abs(pwmValueKanan));
-            
-           } else if (output1 >= 0 && output1 <= 40 && output2 >= 60) { // BelokKananTajam
-            Serial.print("Belok Kanan Tajam");
-            pwmValueKanan = -5; // Kecepatan motor kanan sedang
-            pwmValueKiri = 50; // Kecepatan motor kiri tinggi
+
+          } else if (output1 >= 0 && output1 <= 40 && output2 >= 60) { // BelokKananTajam
+            Serial.println("Belok Kanan Tajam");
+            pwmValueKanan = 30; // Kecepatan motor kanan sedang
+            pwmValueKiri = 70; // Kecepatan motor kiri tinggi
             analogWrite(motorLeftPin1,  abs(pwmValueKiri));
             analogWrite(motorLeftPin2, 0);
             analogWrite(motorRightPin1, 0);
             analogWrite(motorRightPin2, abs(pwmValueKanan));
           }
-    
-    
-    
+
+
+
           // Menulis nilai PWM ke motor driver
-    //      analogWrite(enA, pwmValueKanan);
-    //      analogWrite(enB, pwmValueKiri);
-    
+          //      analogWrite(enA, pwmValueKanan);
+          //      analogWrite(enB, pwmValueKiri);
+
           // Mengatur arah motor
-    //      digitalWrite(in1, HIGH);
-    //      digitalWrite(in2, LOW);
-    //      digitalWrite(in3, HIGH);
-    //      digitalWrite(in4, LOW);
-    
-          previousError = currentError; 
+          //      digitalWrite(in1, HIGH);
+          //      digitalWrite(in2, LOW);
+          //      digitalWrite(in3, HIGH);
+          //      digitalWrite(in4, LOW);
+
+          previousError = currentError;
         }
       }
-  
+
       // Stop motor jika tidak ada data yang diterima lagi
       if (millis() - lastReceiveTime > stopDuration && lastReceiveTime != 0) {
         stopp();
         delay(100);
       }
-      
+
     }
-  } 
-  
+  }
+
   else {
     digitalWrite(ledKuning, HIGH);
     digitalWrite(ledHijau, LOW);
